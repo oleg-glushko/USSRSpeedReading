@@ -1,24 +1,33 @@
 # The main idea of this program is to generate tables with the specific
 # size of an edge, e.g., 5 cm per cell. You can also change the number
-# of cells in rows/columns, a width of the line and size of the font.
+# of cells in rows/columns, the width of a line and the size of a font.
 # Just modify constants placed in the top of this code.
 # 
-# You can control this app by keyboard hotkeys: press 'Space' to
-# generate another layout, 'Left/Right' to change modes, 'Up/Down' to
-# adjust visible cells in a sustained attention traning mode or 'Esc'
-# to exit the program.в
+# You can control this app by keyboard hot-keys: press 'Space' to
+# generate a new layout, 'Left/Right' to browse between modes, 'Up/Down'
+# to adjust a number of visible cells in the sustained attention traning
+# mode or switch sub-modes in the Schulte-Gorbov mode, and 'Esc'
+# to exit the program.
 
-import sys
+import sys, importlib
+from random import shuffle
+from math import floor
+if (importlib.util.find_spec("roman") is None):
+    print("The 'roman' module isn't found, install it with pip:")
+    print("python -m pip install roman")
+    sys.exit(1)
+from roman import toRoman
+if (importlib.util.find_spec("PyQt5") is None):
+    print("The 'PyQt5' module isn't found, install it with pip:")
+    print("python -m pip install PyQt5")
+    sys.exit(1)
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPainter, QFont, QPen, QPalette, QColor
 from PyQt5.QtCore import Qt, QRect
-from random import shuffle
-from math import floor
-from roman import toRoman
 
 
 INCH2CM_RATIO = 2.54
-EDGE_SIZE = 3.1
+EDGE_SIZE = 3.06
 EDGE_LINE_WIDTH = 3
 MAX_CELLS_X = MAX_CELLS_Y = 5
 FONT_RATIO = 1/4
@@ -213,10 +222,12 @@ if __name__ == '__main__':
     if cellsX > MAX_CELLS_X: cellsX = MAX_CELLS_X
     cellsY = height // (edge + EDGE_LINE_WIDTH)
     if cellsY > MAX_CELLS_Y: cellsY = MAX_CELLS_Y
+    if (cellsX < 2 or cellsY < 2):
+        print("Not enough cells, should be at least 2x2.")
+        sys.exit(1)
     cells = cellsX * cellsY
     middle = cells // 2 if cells // 2 == cells / 2 else cells // 2 + 1
-    startX = (width - (cellsX * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2
-    startY = (height - (cellsY * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2
-    
+    startX = int((width - (cellsX * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2)
+    startY = int((height - (cellsY * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2)
     schlt = Schulte()
     sys.exit(app.exec_())
