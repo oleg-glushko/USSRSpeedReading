@@ -1,33 +1,24 @@
 # The main idea of this program is to generate tables with the specific
 # size of an edge, e.g., 5 cm per cell. You can also change the number
-# of cells in rows/columns, the width of a line and the size of a font.
+# of cells in rows/columns, a width of the line and size of the font.
 # Just modify constants placed in the top of this code.
-# 
-# You can control this app by keyboard hot-keys: press 'Space' to
-# generate a new layout, 'Left/Right' to browse between modes, 'Up/Down'
-# to adjust a number of visible cells in the sustained attention traning
-# mode or switch sub-modes in the Schulte-Gorbov mode, and 'Esc'
-# to exit the program.
+#
+# You can control this app by keyboard hotkeys: press 'Space' to
+# generate another layout, 'Left/Right' to change modes, 'Up/Down' to
+# adjust visible cells in a sustained attention traning mode or 'Esc'
+# to exit the program.в
 
-import sys, importlib
+import sys
+from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtGui import QPainter, QFont, QPen, QPalette, QColor
+from PyQt6.QtCore import Qt, QRect
 from random import shuffle
 from math import floor
-if (importlib.util.find_spec("roman") is None):
-    print("The 'roman' module isn't found, install it with pip:")
-    print("python -m pip install roman")
-    sys.exit(1)
 from roman import toRoman
-if (importlib.util.find_spec("PyQt5") is None):
-    print("The 'PyQt5' module isn't found, install it with pip:")
-    print("python -m pip install PyQt5")
-    sys.exit(1)
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QPainter, QFont, QPen, QPalette, QColor
-from PyQt5.QtCore import Qt, QRect
 
 
 INCH2CM_RATIO = 2.54
-EDGE_SIZE = 3.06
+EDGE_SIZE = 3.5
 EDGE_LINE_WIDTH = 3
 MAX_CELLS_X = MAX_CELLS_Y = 5
 FONT_RATIO = 1/4
@@ -46,46 +37,46 @@ class Schulte(QWidget):
         self.gorbovIndex = 0
         self.initArrays()
         self.initUI()
-    
+
     def initUI(self):
         self.setGeometry(0, 0, width, height)
         self.showFullScreen()
         self.setWindowTitle('Precise Schulte')
         pal = self.palette()
-        pal.setColor(QPalette.Background, QColor(*BG_COLOR))
+        pal.setColor(QPalette.ColorRole.Base, QColor(*BG_COLOR))
         self.setAutoFillBackground(True)
         self.setPalette(pal)
         self.show()
-    
+
     def paintEvent(self, event):
         qp = QPainter()
         qp.begin(self)
-        self.setPen(qp, Qt.black)
+        self.setPen(qp, Qt.GlobalColor.black)
         font = QFont()
         font.setFamily("Arial")
-        font.setWeight(QFont.Light)
+        font.setWeight(QFont.Weight.Light)
         font.setPixelSize(floor(dpi / INCH2CM_RATIO * EDGE_SIZE * FONT_RATIO))
         qp.setFont(font)
         self.drawSchulteTable(event, qp)
         qp.end()
-    
+
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             app.quit()
-        if event.key() == Qt.Key_Space:
+        if event.key() == Qt.Key.Key_Space:
             self.initArrays()
             self.update()
-        if event.key() == Qt.Key_Left:
+        if event.key() == Qt.Key.Key_Left:
             self.mode = self.mode - 1
             if (self.mode < 0): self.mode = 3
             self.initArrays()
             self.update()
-        if event.key() == Qt.Key_Right:
+        if event.key() == Qt.Key.Key_Right:
             self.mode = self.mode + 1
             if (self.mode > 3): self.mode = 0
             self.initArrays()
             self.update()
-        if event.key() == Qt.Key_Up:
+        if event.key() == Qt.Key.Key_Up:
             if (self.mode == 1):
                 self.maskIndex = self.maskIndex + 1
                 if (self.maskIndex >= len(MASK_SIZE)): self.maskIndex = 0
@@ -95,7 +86,7 @@ class Schulte(QWidget):
             if (0 != self.mode != 2):
                 self.initArrays()
                 self.update()
-        if event.key() == Qt.Key_Down:
+        if event.key() == Qt.Key.Key_Down:
             if (self.mode == 1):
                 self.maskIndex = self.maskIndex - 1
                 if (self.maskIndex < 0): self.maskIndex = len(MASK_SIZE) - 1
@@ -105,7 +96,7 @@ class Schulte(QWidget):
             if (0 != self.mode != 2):
                 self.initArrays()
                 self.update()
-	
+
     def drawSchulteTable(self, event, qp):
         if (self.mode == 3 and self.gorbovIndex == 1):
             alphabet1 = ALPHABET[:]
@@ -119,9 +110,9 @@ class Schulte(QWidget):
 
                 # draw a cell
                 if (self.mode == 3 and self.gorbovIndex == 2):
-                    self.setPen(qp, Qt.white)
+                    self.setPen(qp, Qt.GlobalColor.white)
                 else:
-                    self.setPen(qp, Qt.black)
+                    self.setPen(qp, Qt.GlobalColor.black)
                 qp.drawRect(startX + i * edge, startY + j * edge, edge, edge)
 
                 if (self.mode == 3 and self.gorbovIndex == 2):
@@ -140,7 +131,7 @@ class Schulte(QWidget):
                 elif (self.mode == 3 and self.gorbovIndex == 2):
                     self.setPen(qp, QColor(255, 255, 255))
                 else:
-                    self.setPen(qp, Qt.black)
+                    self.setPen(qp, Qt.GlobalColor.black)
 
                 if (self.mode == 3 and self.gorbovIndex == 1):
                     if (curIndex // (len(ALPHABET) - 1) > 0):
@@ -157,8 +148,8 @@ class Schulte(QWidget):
                     text = f"{self.numbers[curIndex]}"
 
                 if (self.mode != 1 or self.mode == 1 and (curIndex + 1) in self.mask):
-                    qp.drawText(rect, Qt.AlignCenter, text)
-    
+                    qp.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
+
     def initArrays(self):
         # generate numbers for a table
         if (self.mode == 2 or self.mode == 3):
@@ -169,7 +160,7 @@ class Schulte(QWidget):
                 self.numbers[i] = j + 1
         else:
             self.numbers = list(range(1, cells + 1))
-        
+
         # generate conditions for cells & shuffle
         if (self.mode == 3):
             self.colors = list([BG_COLOR] * cells)
@@ -205,14 +196,14 @@ class Schulte(QWidget):
             self.mask[:] = self.mask[:(floor(cells * MASK_SIZE[self.maskIndex]))]
 
     def setPen(self, qp, penColor):
-        pen = QPen(penColor, EDGE_LINE_WIDTH, Qt.SolidLine)
+        pen = QPen(penColor, EDGE_LINE_WIDTH, Qt.PenStyle.SolidLine)
         qp.setPen(pen)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     screen = app.primaryScreen() # app.screens()[0]
-    app.setOverrideCursor(Qt.BlankCursor)
+    app.setOverrideCursor(Qt.CursorShape.BlankCursor)
     # Calculate sizes for a Schulte table
     dpi = screen.physicalDotsPerInch()
     width = screen.size().width()
@@ -222,12 +213,10 @@ if __name__ == '__main__':
     if cellsX > MAX_CELLS_X: cellsX = MAX_CELLS_X
     cellsY = height // (edge + EDGE_LINE_WIDTH)
     if cellsY > MAX_CELLS_Y: cellsY = MAX_CELLS_Y
-    if (cellsX < 2 or cellsY < 2):
-        print("Not enough cells, should be at least 2x2.")
-        sys.exit(1)
     cells = cellsX * cellsY
-    middle = cells // 2 if cells // 2 == cells / 2 else cells // 2 + 1
+    middle = int(cells // 2 if cells // 2 == cells / 2 else cells // 2 + 1)
     startX = int((width - (cellsX * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2)
     startY = int((height - (cellsY * EDGE_SIZE / INCH2CM_RATIO * dpi)) // 2)
+
     schlt = Schulte()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
